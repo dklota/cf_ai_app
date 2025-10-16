@@ -2,6 +2,8 @@
 
 The chatbot is themed as an NBA analyst, capable of answering general NBA questions or specific facts you input into its knowledge base.
 
+### [Access the chatbot here!](https://rag-bot.divleen2.workers.dev)
+
 ### Project Architecture:
 Frontend: A simple HTML/JS chat interface (ui.html) served by the Worker.
 
@@ -28,3 +30,5 @@ The Worker fetches the full context/notes from D1.
 The Worker constructs a final System Prompt using the retrieved context (RAG).
 
 The Worker calls Llama 3.3 (LLM) for the final answer.
+
+

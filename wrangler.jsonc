@@ -17,31 +17,10 @@
 		"binding": "AI",
 		"remote": true
 	},
-	"vectorize": [
-		{
-			"binding": "VECTORIZE",
-			"index_name": "vector-index",
-			"remote": true
-		}
-	],
-	"d1_databases": [
-		{
-			"binding": "database",
-			"database_name": "database",
-			"database_id": "a8a4aba1-7825-4586-8ad9-8445a2ff3dee",
-			"remote": true
-		}
-	],
-	"workflows": [
-		  {
-			"name": "rag",
-			"binding": "RAG_WORKFLOW",
-			"class_name": "RAGWorkflow"
-		  }
-		],
-	"vars": {
-		"ENABLE_TEXT_SPLITTING": true,
-	}
+	"assets": { 
+        "directory": "src", 
+        "binding": "ASSETS"    // This variable name will be used in Hono: c.env.ASSETS
+    },
 }
 	
 	/**
