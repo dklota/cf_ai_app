@@ -10,7 +10,15 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"@cloudflare/workers-types": "^4.20251011.0",
 		"vitest": "~3.2.0",
 		"wrangler": "^4.43.0"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.66.0",
+		"@cloudflare/puppeteer": "^1.0.4",
+		"@langchain/textsplitters": "^0.1.0",
+		"agents": "^0.2.13",
+		"hono": "^4.9.12"
 	}
 }

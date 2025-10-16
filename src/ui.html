@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA RAG Chatbot</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+
+    
+    <style>
+        /* Custom Styles for a Chat Interface */
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; background-color: #f0f4f8;}
+        .chat-container { 
+            width: 1300px; 
+            height: 97vh; /* Takes up most of the viewport height */
+            background-color: white; 
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-top: 15px;
+            margin-left: 200px; 
+            margin-right: auto;
+        }
+        #chat-output {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        #chat-output p {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 15px;
+            max-width: 80%;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column; 
+        }
+        .user-message {
+            background-color: #17408B;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .ai-message {
+            background-color: #153454;
+            color: #ffffff;
+            align-self: flex-start;
+            margin-right: auto;
+        }
+        #chat-form {
+            display: flex;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        #prompt-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            background-color: #C9082A;
+            color: white;
+            border: none;
+        }
+        .sub-nav {
+            padding: 10px;
+            text-align: center;
+        }
+        .logo-container {
+          text-align: center; /* Center the logo */
+          padding: 15px;
+          border-bottom: 1px solid #eee; /* Separator below logo */
+        }
+        .logo-container img {
+          max-width: 80px; /* Adjust size as needed */
+          height: auto;
+          display: block; /* Remove extra space below image */
+          margin: 0 auto; /* Center the image itself */
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+      <div class="logo-container">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/03/National_Basketball_Association_logo.svg/1200px-National_Basketball_Association_logo.svg.png" alt="NBA Logo">
+      </div>
+        
+        <div class="sub-nav">
+            <small>
+              <a href="/">Home</a> ・ <a href="/notes">Notes</a> ・ <a href="/write">Add note</a>
+            </small>
+        </div>
+
+        <div id="chat-output">
+            <p class="ai-message"><strong>NBA Bot:</strong> Ask me anything about the league, a team, or a player!</p>
+        </div>
+
+        <form id="chat-form">
+            <input type="text" id="prompt-input" placeholder="E.g., Who is the current MVP?" required />
+            <button type="submit" id="submitButton">Send</button>
+        </form>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const chatOutput = document.getElementById('chat-output');
+        const submitButton = document.getElementById('submitButton');
+        
+        // Function to create a unique session ID (required for Durable Objects/Memory)
+        function getSessionId() {
+            let sessionId = localStorage.getItem('chatSessionId');
+            if (!sessionId) {
+                sessionId = 'session-' + Date.now();
+                localStorage.setItem('chatSessionId', sessionId);
+            }
+            return sessionId;
+        }
+
+        // --- Event Listener for Form Submission ---
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const promptInput = document.getElementById('prompt-input');
+            const prompt = promptInput.value;
+            
+            if (!prompt) return;
+
+            // 1. Prepare UI and disable input
+            promptInput.value = ''; 
+            promptInput.disabled = true;
+            submitButton.disabled = true;
+            
+            // Display user message
+            const userMsg = document.createElement('p');
+            userMsg.classList.add('user-message');
+            userMsg.textContent = prompt;
+            chatOutput.appendChild(userMsg);
+
+            // 2. Prepare AI container
+            const aiMessageContainer = document.createElement('p');
+            aiMessageContainer.classList.add('ai-message');
+            aiMessageContainer.innerHTML = '<strong>NBA Bot:</strong> '; // Start with label
+            chatOutput.appendChild(aiMessageContainer);
+            
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
+
+            try {
+                // 3. Construct the API URL (use the RAG endpoint)
+                const sessionId = getSessionId();
+                const endpoint = `/api/query?text=${encodeURIComponent(prompt)}`; 
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET', // Your RAG endpoint is GET with a query param
+                    headers: { 
+                        // IMPORTANT: Pass the session ID for memory/Durable Objects
+                        'X-Session-ID': sessionId,
+                        'Content-Type': 'application/json' 
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}. Message: ${await response.text()}`);
+                }
+                
+                // 4. Read and display the plain text response (assuming your Worker returns c.text())
+                const fullResponseText = await response.text();
+                
+                // Display the final text
+                aiMessageContainer.textContent = `NBA Bot: ${fullResponseText}`;
+
+            } catch (error) {
+                console.error('Error fetching RAG response:', error);
+                aiMessageContainer.innerHTML = `<strong>NBA Bot:</strong> <span style="color: red;">Error: Could not connect to AI. ${error.message}</span>`;
+            } finally {
+                // 5. Re-enable input
+                promptInput.disabled = false;
+                submitButton.disabled = false;
+                promptInput.focus();
+                chatOutput.scrollTop = chatOutput.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

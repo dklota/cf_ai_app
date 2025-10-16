@@ -5,11 +5,45 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "rag-bot",
-	"main": "src/index.js",
+	"main": "src/index.ts",
 	"compatibility_date": "2025-10-11",
+	"compatibility_flags": [
+		"nodejs_compat" 
+	  ],
 	"observability": {
 		"enabled": true
+	},
+	"ai": {
+		"binding": "AI",
+		"remote": true
+	},
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "vector-index",
+			"remote": true
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "database",
+			"database_name": "database",
+			"database_id": "a8a4aba1-7825-4586-8ad9-8445a2ff3dee",
+			"remote": true
+		}
+	],
+	"workflows": [
+		  {
+			"name": "rag",
+			"binding": "RAG_WORKFLOW",
+			"class_name": "RAGWorkflow"
+		  }
+		],
+	"vars": {
+		"ENABLE_TEXT_SPLITTING": true,
 	}
+}
+	
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -40,4 +74,3 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
-}
